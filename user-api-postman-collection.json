@@ -1,0 +1,174 @@
+{
+    "info": {
+        "name": "User API Collection",
+        "description": "Collection for testing User CRUD operations",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:3000/api",
+            "type": "string"
+        },
+        {
+            "key": "user_id",
+            "value": "",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "Create User",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/users",
+                    "host": ["{{base_url}}"],
+                    "path": ["users"]
+                },
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"name\": \"John Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"password\": \"securePassword123\"\n}"
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                            "pm.test(\"Status code is 201\", function () {",
+                            "    pm.response.to.have.status(201);",
+                            "});",
+                            "",
+                            "pm.test(\"Response has required user fields\", function () {",
+                            "    const jsonData = pm.response.json();",
+                            "    pm.expect(jsonData).to.have.property('id');",
+                            "    pm.expect(jsonData).to.have.property('name');",
+                            "    pm.expect(jsonData).to.have.property('email');",
+                            "    pm.expect(jsonData.name).to.eql('John Doe');",
+                            "    pm.expect(jsonData.email).to.eql('john.doe@example.com');",
+                            "});",
+                            "",
+                            "// Save user ID for other requests",
+                            "pm.collectionVariables.set(\"user_id\", pm.response.json().id);"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Get User",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{base_url}}/users/{{user_id}}",
+                    "host": ["{{base_url}}"],
+                    "path": ["users", "{{user_id}}"]
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                            "pm.test(\"Status code is 200\", function () {",
+                            "    pm.response.to.have.status(200);",
+                            "});",
+                            "",
+                            "pm.test(\"User data is correct\", function () {",
+                            "    const jsonData = pm.response.json();",
+                            "    pm.expect(jsonData.id).to.eql(pm.collectionVariables.get(\"user_id\"));",
+                            "    pm.expect(jsonData.name).to.eql('John Doe');",
+                            "    pm.expect(jsonData.email).to.eql('john.doe@example.com');",
+                            "});"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Update User",
+            "request": {
+                "method": "PUT",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/users/{{user_id}}",
+                    "host": ["{{base_url}}"],
+                    "path": ["users", "{{user_id}}"]
+                },
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"name\": \"John Updated\",\n    \"email\": \"john.updated@example.com\"\n}"
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                            "pm.test(\"Status code is 200\", function () {",
+                            "    pm.response.to.have.status(200);",
+                            "});",
+                            "",
+                            "pm.test(\"User was updated correctly\", function () {",
+                            "    const jsonData = pm.response.json();",
+                            "    pm.expect(jsonData.name).to.eql('John Updated');",
+                            "    pm.expect(jsonData.email).to.eql('john.updated@example.com');",
+                            "});"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Delete User",
+            "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                    "raw": "{{base_url}}/users/{{user_id}}",
+                    "host": ["{{base_url}}"],
+                    "path": ["users", "{{user_id}}"]
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                            "pm.test(\"Status code is 204\", function () {",
+                            "    pm.response.to.have.status(204);",
+                            "});",
+                            "",
+                            "// Verify user is deleted by trying to fetch it",
+                            "pm.sendRequest({",
+                            "    url: pm.variables.get(\"base_url\") + \"/users/\" + pm.variables.get(\"user_id\"),",
+                            "    method: 'GET'",
+                            "}, function (err, response) {",
+                            "    pm.test(\"User should no longer exist\", function () {",
+                            "        pm.expect(response.code).to.eql(404);",
+                            "    });",
+                            "});"
+                        ]
+                    }
+                }
+            ]
+        }
+    ]
+}
